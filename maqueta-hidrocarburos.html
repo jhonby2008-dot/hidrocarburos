@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maqueta Digital - Hidrocarburos en Movimiento</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: #111827;
+  color: #e5e7eb;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+}
+
+h1 { font-size: 20px; font-weight: 700; color: #f9fafb; text-align: center; margin-bottom: 2px; }
+.subtitle { font-size: 12px; color: #6b7280; text-align: center; margin-bottom: 14px; }
+
+.layout { display: flex; gap: 14px; width: 100%; max-width: 1160px; align-items: flex-start; }
+
+.panel-left {
+  background: #1f2937; border: 1px solid #374151; border-radius: 10px;
+  padding: 14px; width: 220px; flex-shrink: 0;
+}
+.panel-title {
+  font-size: 11px; font-weight: 700; color: #9ca3af;
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+}
+.ctrl-row { margin-bottom: 12px; }
+.ctrl-label {
+  font-size: 11px; color: #d1d5db; margin-bottom: 4px;
+  display: flex; justify-content: space-between;
+}
+.ctrl-label b { color: #f9fafb; }
+input[type=range] { width: 100%; accent-color: #38bdf8; cursor: pointer; }
+
+.btn {
+  width: 100%; padding: 9px; border: none; border-radius: 7px;
+  font-size: 13px; font-weight: 700; cursor: pointer; margin-bottom: 7px;
+  transition: transform 0.1s, opacity 0.2s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-go    { background: #16a34a; color: #fff; }
+.btn-reset { background: #374151; color: #e5e7eb; }
+.btn:disabled { opacity: 0.35; cursor: default; }
+
+hr.div { border: none; border-top: 1px solid #374151; margin: 12px 0; }
+
+.legend-item { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 9px; font-size: 11px; }
+.leg-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 2px; flex-shrink: 0; }
+.leg-name { font-weight: 700; }
+.leg-sub { color: #9ca3af; font-size: 10px; line-height: 1.4; }
+
+.zone-list {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+.zone-item {
+  border: 1px solid #374151;
+  border-radius: 7px;
+  padding: 6px 8px;
+  background: #111827;
+}
+.zone-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #e5e7eb;
+  margin-bottom: 3px;
+}
+.zone-sub {
+  font-size: 9px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+.zone-active {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.2) inset;
+}
+
+.panel-canvas {
+  flex: 1; background: #1f2937; border: 1px solid #374151;
+  border-radius: 10px; padding: 12px; min-width: 0;
+}
+canvas { display: block; width: 100%; border-radius: 6px; background: #0f172a; }
+
+.panel-right {
+  background: #1f2937; border: 1px solid #374151; border-radius: 10px;
+  padding: 14px; width: 224px; flex-shrink: 0;
+}
+
+.fluid-card {
+  border-radius: 8px; padding: 9px 11px; margin-bottom: 9px;
+  border: 1px solid rgba(255,255,255,0.07);
+}
+.fc-head {
+  font-size: 12px; font-weight: 700; margin-bottom: 7px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.badge { font-size: 9px; padding: 1px 5px; border-radius: 8px; display: none; }
+.fc-row {
+  display: flex; justify-content: space-between;
+  font-size: 10px; color: #9ca3af; margin-bottom: 3px;
+}
+.fc-val { color: #f9fafb; font-weight: 700; font-size: 11px; }
+.fc-bar-bg { height: 5px; background: rgba(255,255,255,0.08); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.fc-bar { height: 5px; border-radius: 3px; width: 0%; transition: width 0.15s; }
+
+.formula-box {
+  background: #0f172a; border-radius: 7px; padding: 9px; margin-top: 10px;
+  font-size: 10px; color: #9ca3af; line-height: 1.8;
+}
+.formula-box b { color: #38bdf8; }
+
+.result-bar {
+  width: 100%; max-width: 1160px; background: #1f2937; border: 1px solid #374151;
+  border-radius: 10px; padding: 12px 18px; margin-top: 12px;
+  display: none; gap: 20px; flex-wrap: wrap; align-items: center;
+}
+.res-col { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; min-width: 100px; }
+.res-lbl { font-size: 10px; color: #6b7280; }
+.res-val { font-size: 18px; font-weight: 700; }
+.res-sub { font-size: 10px; color: #6b7280; }
+.conclusion {
+  flex: 3; font-size: 12px; color: #d1d5db; line-height: 1.65;
+  border-left: 2px solid #374151; padding-left: 16px;
+}
+
+@media (max-width: 980px) {
+  .layout { flex-direction: column; }
+  .panel-left, .panel-right, .panel-canvas { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<h1>Maqueta Digital - Hidrocarburos en Movimiento</h1>
+<p class="subtitle">Densidad · Viscosidad · Caudal · Comportamiento como fluidos · Grado 11</p>
+
+<div class="layout">
+
+  <div class="panel-left">
+    <div class="panel-title">Parámetros</div>
+    <div class="ctrl-row">
+      <div class="ctrl-label">Ángulo <b id="lbl-ang">25°</b></div>
+      <input type="range" id="sl-ang" min="5" max="60" value="25" step="1">
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-label">Volumen (mL) <b id="lbl-vol">150</b></div>
+      <input type="range" id="sl-vol" min="50" max="300" value="150" step="10">
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-label">Diámetro entrada (cm) <b id="lbl-dia-in">2.0</b></div>
+      <input type="range" id="sl-dia-in" min="0.5" max="5" value="2" step="0.25">
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-label">Diámetro centro (cm) <b id="lbl-dia-mid">2.0</b></div>
+      <input type="range" id="sl-dia-mid" min="0.5" max="5" value="2" step="0.25">
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-label">Diámetro salida (cm) <b id="lbl-dia-out">2.0</b></div>
+      <input type="range" id="sl-dia-out" min="0.5" max="5" value="2" step="0.25">
+    </div>
+    <button class="btn btn-go" id="btn-go" onclick="startExp()">▶ Iniciar</button>
+    <button class="btn btn-reset" onclick="resetExp()">↺ Reiniciar</button>
+    <hr class="div">
+    <div class="panel-title">Zonas de diámetro</div>
+    <div class="zone-list" id="zone-list"></div>
+    <hr class="div">
+    <div class="panel-title">Fluidos</div>
+    <div class="legend-item">
+      <div class="leg-dot" style="background:#38bdf8"></div>
+      <div><div class="leg-name" style="color:#38bdf8">Agua</div>
+        <div class="leg-sub">ρ=1,000 g/cm³ · η=1,0 mPa·s</div></div>
+    </div>
+    <div class="legend-item">
+      <div class="leg-dot" style="background:#4ade80"></div>
+      <div><div class="leg-name" style="color:#4ade80">Alcohol etanol</div>
+        <div class="leg-sub">ρ=0,789 g/cm³ · η=1,2 mPa·s</div></div>
+    </div>
+    <div class="legend-item">
+      <div class="leg-dot" style="background:#fb923c"></div>
+      <div><div class="leg-name" style="color:#fb923c">Aceite motor</div>
+        <div class="leg-sub">ρ=0,872 g/cm³ · η=3,5 mPa·s</div></div>
+    </div>
+  </div>
+
+  <div class="panel-canvas">
+    <canvas id="cv" width="640" height="480"></canvas>
+  </div>
+
+  <div class="panel-right">
+    <div class="panel-title">Mediciones en vivo</div>
+
+    <div class="fluid-card" style="background:rgba(56,189,248,0.06);border-color:rgba(56,189,248,0.22)">
+      <div class="fc-head" style="color:#38bdf8">Agua
+        <span class="badge" id="bdg-agua" style="background:rgba(56,189,248,0.2);color:#38bdf8">1° llegada</span>
+      </div>
+      <div class="fc-row"><span>Tiempo</span><span class="fc-val" id="t-agua">—</span></div>
+      <div class="fc-row"><span>Llegó al recipiente</span><span class="fc-val" id="arr-agua">—</span></div>
+      <div class="fc-row"><span>Recipiente lleno</span><span class="fc-val" id="fill-agua">—</span></div>
+      <div class="fc-row"><span>Velocidad</span><span class="fc-val" id="v-agua">—</span></div>
+      <div class="fc-row"><span>Depósito restante</span><span class="fc-val" id="dep-agua">—</span></div>
+      <div class="fc-bar-bg"><div class="fc-bar" id="bar-agua" style="background:#38bdf8"></div></div>
+    </div>
+
+    <div class="fluid-card" style="background:rgba(74,222,128,0.06);border-color:rgba(74,222,128,0.22)">
+      <div class="fc-head" style="color:#4ade80">Alcohol
+        <span class="badge" id="bdg-alc" style="background:rgba(74,222,128,0.2);color:#4ade80">1° llegada</span>
+      </div>
+      <div class="fc-row"><span>Tiempo</span><span class="fc-val" id="t-alc">—</span></div>
+      <div class="fc-row"><span>Llegó al recipiente</span><span class="fc-val" id="arr-alc">—</span></div>
+      <div class="fc-row"><span>Recipiente lleno</span><span class="fc-val" id="fill-alc">—</span></div>
+      <div class="fc-row"><span>Velocidad</span><span class="fc-val" id="v-alc">—</span></div>
+      <div class="fc-row"><span>Depósito restante</span><span class="fc-val" id="dep-alc">—</span></div>
+      <div class="fc-bar-bg"><div class="fc-bar" id="bar-alc" style="background:#4ade80"></div></div>
+    </div>
+
+    <div class="fluid-card" style="background:rgba(251,146,60,0.06);border-color:rgba(251,146,60,0.22)">
+      <div class="fc-head" style="color:#fb923c">Aceite motor
+        <span class="badge" id="bdg-ace" style="background:rgba(251,146,60,0.2);color:#fb923c">1° llegada</span>
+      </div>
+      <div class="fc-row"><span>Tiempo</span><span class="fc-val" id="t-ace">—</span></div>
+      <div class="fc-row"><span>Llegó al recipiente</span><span class="fc-val" id="arr-ace">—</span></div>
+      <div class="fc-row"><span>Recipiente lleno</span><span class="fc-val" id="fill-ace">—</span></div>
+      <div class="fc-row"><span>Velocidad</span><span class="fc-val" id="v-ace">—</span></div>
+      <div class="fc-row"><span>Depósito restante</span><span class="fc-val" id="dep-ace">—</span></div>
+      <div class="fc-bar-bg"><div class="fc-bar" id="bar-ace" style="background:#fb923c"></div></div>
+    </div>
+
+    <div class="formula-box">
+      <b>Q = A · v</b> - caudal<br>
+      <b>rho = m / V</b> - densidad<br>
+      <b>v ~ rho·sen(theta)·r^2/eta</b><br>
+      <span style="font-size:9px">Mayor diametro y mayor pendiente -> mayor caudal</span>
+    </div>
+  </div>
+</div>
+
+<div class="result-bar" id="result-bar">
+  <div class="res-col">
+    <div class="res-lbl">Recipiente lleno primero</div>
+    <div class="res-val" id="r-fast">—</div>
+    <div class="res-sub" id="r-fast-t">—</div>
+  </div>
+  <div class="res-col">
+    <div class="res-lbl">Recipiente lleno último</div>
+    <div class="res-val" id="r-slow">—</div>
+    <div class="res-sub" id="r-slow-t">—</div>
+  </div>
+  <div class="res-col">
+    <div class="res-lbl">Factor de diferencia</div>
+    <div class="res-val" id="r-factor" style="color:#f9fafb">—</div>
+    <div class="res-sub">veces más lento</div>
+  </div>
+  <div class="conclusion" id="r-conclusion">—</div>
+</div>
+
+<script>
+const FLUIDS = [
+  { id: 'agua', name: 'Agua',         rho: 1.000, eta: 1.0,  color: '#38bdf8', rgb: '56,189,248' },
+  { id: 'alc',  name: 'Alcohol',      rho: 0.789, eta: 1.2,  color: '#4ade80', rgb: '74,222,128' },
+  { id: 'ace',  name: 'Aceite motor', rho: 0.872, eta: 3.5,  color: '#fb923c', rgb: '251,146,60' }
+];
+
+const DIAMETER_ZONES = [
+  { min: 0.5,  max: 1.25, name: 'Zona 1', desc: 'Tubo estrecho', factor: 'caudal bajo' },
+  { min: 1.25, max: 2.25, name: 'Zona 2', desc: 'Tubo medio', factor: 'caudal moderado' },
+  { min: 2.25, max: 3.5,  name: 'Zona 3', desc: 'Tubo amplio', factor: 'caudal alto' },
+  { min: 3.5,  max: 5.01, name: 'Zona 4', desc: 'Tubo ancho', factor: 'caudal muy alto' }
+];
+
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+
+let angle = 25;
+let initVol = 150;
+let diamIn = 2.0;
+let diamMid = 2.0;
+let diamOut = 2.0;
+
+const TUBE_LENGTH_CM = 140;
+const FILL_LENGTH_CM = 85;
+const FLOW_VISUAL_GAIN = 1.35;
+
+let states = [];
+let running = false;
+let done = false;
+let startTs = null;
+let lastTs = null;
+let rafId = null;
+let firstBadge = false;
+
+function getZoneForDiameter(diameter) {
+  return DIAMETER_ZONES.find(zone => diameter >= zone.min && diameter < zone.max) || DIAMETER_ZONES[0];
+}
+
+function getSegmentDiameters() {
+  return [
+    { key: 'entrada', value: diamIn },
+    { key: 'centro', value: diamMid },
+    { key: 'salida', value: diamOut }
+  ];
+}
+
+function getSectionForProgress(progress) {
+  const sections = getSegmentDiameters();
+  const index = Math.min(sections.length - 1, Math.floor(progress * sections.length));
+  return sections[index];
+}
+
+function getZoneBoost(zone) {
+  return [0.82, 1.0, 1.24, 1.52][DIAMETER_ZONES.indexOf(zone)];
+}
+
+function renderDiameterZones() {
+  const html = getSegmentDiameters().map(segment => {
+    const active = getZoneForDiameter(segment.value);
+    const rangeText = `${segment.value.toFixed(2)} cm`;
+    return `
+      <div class="zone-item zone-active">
+        <div class="zone-head"><span>${segment.key}</span><span>${rangeText}</span></div>
+        <div class="zone-sub">${active.name} · ${active.desc} · ${active.factor}</div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('zone-list').innerHTML = html;
+}
+
+function physSpeedForDiameter(f, diameter) {
+  const g = 980;
+  const ang = angle * Math.PI / 180;
+  const r = diameter / 2;
+  const zone = getZoneForDiameter(diameter);
+  const zoneBoost = getZoneBoost(zone);
+  return Math.max(1e-6, ((f.rho * g * Math.sin(ang)) / (8 * f.eta)) * r * r * zoneBoost);
+}
+
+function physSpeed(f) {
+  const sectionSpeeds = getSegmentDiameters().map(segment => physSpeedForDiameter(f, segment.value));
+  return sectionSpeeds.length / sectionSpeeds.reduce((sum, speed) => sum + (1 / Math.max(speed, 1e-6)), 0);
+}
+
+function layout() {
+  const W = cv.width;
+  const H = cv.height;
+  const ML = 20;
+  const MR = 20;
+  const sW = (W - ML - MR) / 3;
+  const drop = 120 + angle * 2.3;
+
+  return FLUIDS.map((f, i) => {
+    const sx = ML + i * sW;
+    const dW = 40;
+    const dH = 55;
+    const dX = sx + 8;
+    const dY = 52;
+
+    const rW = 52;
+    const rH = 68;
+    const rX = sx + sW - rW - 8;
+    const rY = Math.min(H - rH - 28, dY + drop);
+
+    const t1x = dX + dW / 2;
+    const t1y = dY + dH;
+    const t2x = rX + rW / 2;
+    const t2y = rY;
+
+    const tLen = Math.hypot(t2x - t1x, t2y - t1y);
+    const tDx = t2x - t1x;
+    const tDy = t2y - t1y;
+    const tPx = -tDy / tLen;
+    const tPy = tDx / tLen;
+
+    return { f, i, sx, sW, dX, dY, dW, dH, rX, rY, rW, rH, t1x, t1y, t2x, t2y, tLen, tDx, tDy, tPx, tPy };
+  });
+}
+
+function rrect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+}
+
+function getTubeSections(L) {
+  const diameters = getSegmentDiameters().map(segment => segment.value);
+  return diameters.map((diameter, index) => {
+    const startFrac = index / diameters.length;
+    const endFrac = (index + 1) / diameters.length;
+    const x1 = L.t1x + L.tDx * startFrac;
+    const y1 = L.t1y + L.tDy * startFrac;
+    const x2 = L.t1x + L.tDx * endFrac;
+    const y2 = L.t1y + L.tDy * endFrac;
+    const halfWidth = Math.max(5, diameter * 4.8);
+    return { index, startFrac, endFrac, x1, y1, x2, y2, halfWidth, diameter };
+  });
+}
+
+function drawTubeSegment(segment, L, fillStyle, strokeStyle) {
+  ctx.beginPath();
+  ctx.moveTo(segment.x1 + L.tPx * segment.halfWidth, segment.y1 + L.tPy * segment.halfWidth);
+  ctx.lineTo(segment.x2 + L.tPx * segment.halfWidth, segment.y2 + L.tPy * segment.halfWidth);
+  ctx.lineTo(segment.x2 - L.tPx * segment.halfWidth, segment.y2 - L.tPy * segment.halfWidth);
+  ctx.lineTo(segment.x1 - L.tPx * segment.halfWidth, segment.y1 - L.tPy * segment.halfWidth);
+  ctx.closePath();
+  ctx.fillStyle = fillStyle;
+  ctx.fill();
+  ctx.strokeStyle = strokeStyle;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+function drawAngleGuide(guideX, guideY) {
+  const len = 54;
+  const rad = angle * Math.PI / 180;
+  const endX = guideX + Math.cos(rad) * len;
+  const endY = guideY + Math.sin(rad) * len;
+
+  ctx.save();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(148,163,184,0.8)';
+  ctx.beginPath();
+  ctx.moveTo(guideX, guideY);
+  ctx.lineTo(guideX + len, guideY);
+  ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(56,189,248,0.95)';
+  ctx.beginPath();
+  ctx.moveTo(guideX, guideY);
+  ctx.lineTo(endX, endY);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(56,189,248,0.35)';
+  ctx.arc(guideX, guideY, 18, 0, rad);
+  ctx.stroke();
+
+  ctx.fillStyle = '#cbd5e1';
+  ctx.font = '10px Arial';
+  ctx.fillText(`Ángulo ${angle}°`, guideX - 8, guideY - 10);
+  ctx.restore();
+}
+
+function drawDiameterGuide() {
+  const sections = getSegmentDiameters();
+  const x = 430;
+  const y = 28;
+  const w = 176;
+  const h = 58;
+
+  ctx.save();
+  rrect(x, y, w, h, 8);
+  ctx.fillStyle = 'rgba(15,23,42,0.9)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '10px Arial';
+  ctx.fillText('Diametros por tramo', x + 10, y + 12);
+
+  sections.forEach((section, index) => {
+    const barX = x + 12 + index * 52;
+    const pipeH = Math.max(6, section.value * 4.4);
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(barX, y + 26, 40, 18);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(barX, y + 35 - pipeH / 2, 40, pipeH);
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '9px Arial';
+    ctx.fillText(`${section.key}`, barX, y + 53);
+    ctx.fillText(`${section.value.toFixed(1)} cm`, barX, y + 19);
+  });
+  ctx.restore();
+}
+
+function draw() {
+  const W = cv.width;
+  const H = cv.height;
+  ctx.clearRect(0, 0, W, H);
+
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.022)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 32) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
+    ctx.stroke();
+  }
+  for (let y = 0; y < H; y += 32) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(0, H - 24, W, 24);
+  ctx.strokeStyle = '#334155';
+  ctx.beginPath();
+  ctx.moveTo(0, H - 24);
+  ctx.lineTo(W, H - 24);
+  ctx.stroke();
+
+  drawAngleGuide(42, 428);
+  drawDiameterGuide();
+
+  const ly = layout();
+
+  ly.forEach((L, i) => {
+    const s = states[i];
+    const f = L.f;
+    const rgb = f.rgb;
+    const tubeSections = getTubeSections(L);
+
+    if (i > 0) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(L.sx, 36);
+      ctx.lineTo(L.sx, H - 24);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    tubeSections.forEach(segment => {
+      drawTubeSegment(segment, L, '#1a2535', 'rgba(255,255,255,0.1)');
+    });
+
+    if (s) {
+      const frontFrac = s.phase === 0 ? s.tubeProg : 1.0;
+      if (frontFrac > 0.005) {
+        const fx = L.t1x + L.tDx * frontFrac;
+        const fy = L.t1y + L.tDy * frontFrac;
+        const activeSegment = tubeSections.find(segment => frontFrac <= segment.endFrac) || tubeSections[tubeSections.length - 1];
+        const cw = activeSegment.halfWidth - 1.5;
+
+        tubeSections.forEach(segment => {
+          if (frontFrac <= segment.startFrac) return;
+          const localEndFrac = Math.min(frontFrac, segment.endFrac);
+          const px2 = L.t1x + L.tDx * localEndFrac;
+          const py2 = L.t1y + L.tDy * localEndFrac;
+          const innerHalf = segment.halfWidth - 1.5;
+
+          ctx.beginPath();
+          ctx.moveTo(segment.x1 + L.tPx * innerHalf, segment.y1 + L.tPy * innerHalf);
+          ctx.lineTo(px2 + L.tPx * innerHalf, py2 + L.tPy * innerHalf);
+          ctx.lineTo(px2 - L.tPx * innerHalf, py2 - L.tPy * innerHalf);
+          ctx.lineTo(segment.x1 - L.tPx * innerHalf, segment.y1 - L.tPy * innerHalf);
+          ctx.closePath();
+          ctx.fillStyle = `rgba(${rgb},0.9)`;
+          ctx.fill();
+
+          ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+          ctx.lineWidth = Math.max(2, innerHalf * 0.45);
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(segment.x1 + L.tPx * innerHalf * 0.25, segment.y1 + L.tPy * innerHalf * 0.25);
+          ctx.lineTo(px2 + L.tPx * innerHalf * 0.25, py2 + L.tPy * innerHalf * 0.25);
+          ctx.stroke();
+        });
+
+        ctx.beginPath();
+        ctx.arc(fx, fy, cw, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${rgb},0.95)`;
+        ctx.fill();
+
+        if (s.phase === 0 && frontFrac > 0.06) {
+          s.particles.forEach(pt => {
+            if (pt.t > frontFrac - 0.02) return;
+            const px = L.t1x + L.tDx * pt.t + L.tPx * pt.ox * cw;
+            const py = L.t1y + L.tDy * pt.t + L.tPy * pt.ox * cw;
+            ctx.beginPath();
+            ctx.arc(px, py, pt.r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,0.22)';
+            ctx.fill();
+          });
+        }
+      }
+    }
+
+    const depFrac = s ? Math.max(0, s.depVol / initVol) : 1.0;
+    ctx.fillStyle = '#0c1524';
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 1.5;
+    rrect(L.dX, L.dY, L.dW, L.dH, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    if (depFrac > 0.01) {
+      const lh = Math.max(2, (L.dH - 5) * depFrac);
+      ctx.save();
+      rrect(L.dX, L.dY, L.dW, L.dH, 4);
+      ctx.clip();
+      ctx.fillStyle = `rgba(${rgb},0.9)`;
+      ctx.fillRect(L.dX + 2, L.dY + L.dH - 2 - lh, L.dW - 4, lh);
+      ctx.fillStyle = 'rgba(255,255,255,0.14)';
+      ctx.fillRect(L.dX + 3, L.dY + L.dH - 2 - lh, 5, lh);
+      ctx.restore();
+    }
+
+    ctx.fillStyle = `rgba(${rgb},${depFrac > 0.01 ? 0.7 : 0.15})`;
+    ctx.beginPath();
+    ctx.arc(L.t1x, L.t1y - 2, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = f.color;
+    ctx.font = 'bold 11px Arial';
+    ctx.fillText(f.name, L.dX + L.dW / 2, L.dY - 18);
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '9px Arial';
+    ctx.fillText(s ? `${Math.round(s.depVol)} mL` : `${initVol} mL`, L.dX + L.dW / 2, L.dY - 7);
+
+    const recFrac = s ? Math.min(1, s.fillProg) : 0;
+    const recFull = s && s.phase >= 2;
+    ctx.fillStyle = '#0c1524';
+    ctx.strokeStyle = recFull ? f.color : 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = recFull ? 2 : 1.5;
+    rrect(L.rX, L.rY, L.rW, L.rH, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    if (recFrac > 0.005) {
+      const rh = Math.max(2, (L.rH - 5) * recFrac);
+      ctx.save();
+      rrect(L.rX, L.rY, L.rW, L.rH, 4);
+      ctx.clip();
+      ctx.fillStyle = `rgba(${rgb},0.9)`;
+      ctx.fillRect(L.rX + 2, L.rY + L.rH - 2 - rh, L.rW - 4, rh);
+      ctx.fillStyle = 'rgba(255,255,255,0.13)';
+      ctx.fillRect(L.rX + 3, L.rY + L.rH - 2 - rh, 7, rh);
+      if (recFrac < 0.98) {
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillRect(L.rX + 2, L.rY + L.rH - 2 - rh, L.rW - 4, 3);
+      }
+      ctx.restore();
+    }
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '9px Arial';
+    ctx.fillText(`${Math.round(s ? s.recVol : 0)} mL`, L.rX + L.rW / 2, L.rY + L.rH + 12);
+    if (s && s.tFilled !== null) {
+      ctx.fillStyle = f.color;
+      ctx.font = 'bold 9px Arial';
+      ctx.fillText('✓ lleno', L.rX + L.rW / 2, L.rY + L.rH + 23);
+    }
+  });
+
+  ctx.fillStyle = '#cbd5e1';
+  ctx.font = '10px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText(`theta=${angle}° · entrada=${diamIn.toFixed(1)} cm · centro=${diamMid.toFixed(1)} cm · salida=${diamOut.toFixed(1)} cm · Vol=${initVol} mL`, 14, H - 8);
+}
+
+function initStates() {
+  states = FLUIDS.map((f, i) => ({
+    ...f,
+    realSpeed: physSpeed(f),
+    segmentSpeed: physSpeedForDiameter(f, diamIn),
+    currentSection: 'entrada',
+    phase: 0,
+    tubeProg: 0,
+    fillProg: 0,
+    depVol: initVol,
+    recVol: 0,
+    tArrival: null,
+    tFilled: null,
+    frozenTime: null,
+    particles: Array.from({ length: 14 }, () => ({
+      t: Math.random() * 0.3,
+      ox: (Math.random() - 0.5) * 0.6,
+      r: 1.2 + Math.random() * 1.6,
+      spd: 0.5 + Math.random() * 0.8
+    }))
+  }));
+}
+
+function loop(ts) {
+  if (!startTs) startTs = ts;
+  if (!lastTs) lastTs = ts;
+  const elapsed = (ts - startTs) / 1000;
+  const dt = Math.min(0.05, (ts - lastTs) / 1000);
+  lastTs = ts;
+  let allDone = true;
+
+  states.forEach(s => {
+    if (s.phase === 2) return;
+    allDone = false;
+
+    if (s.phase === 0) {
+      const currentSection = getSectionForProgress(s.tubeProg);
+      const liveSpeed = physSpeedForDiameter(s, currentSection.value);
+      s.segmentSpeed = liveSpeed;
+      s.realSpeed = liveSpeed;
+      s.currentSection = currentSection.key;
+      const tubeStep = (liveSpeed * FLOW_VISUAL_GAIN * dt) / TUBE_LENGTH_CM;
+      s.tubeProg = Math.min(1, s.tubeProg + tubeStep);
+      s.depVol = Math.max(0, initVol * (1 - s.tubeProg * 0.55));
+
+      s.particles.forEach(pt => {
+        pt.t += tubeStep * pt.spd * 1.4;
+        if (pt.t >= s.tubeProg) pt.t = Math.max(0, s.tubeProg * Math.random() * 0.5);
+      });
+
+      if (s.tubeProg >= 1) {
+        s.phase = 1;
+        s.tArrival = elapsed;
+        s.realSpeed = physSpeedForDiameter(s, diamOut);
+        s.currentSection = 'recipiente';
+        if (!firstBadge) {
+          firstBadge = true;
+          document.getElementById(`bdg-${s.id}`).style.display = 'inline';
+        }
+      }
+    } else if (s.phase === 1) {
+      const outletSpeed = physSpeedForDiameter(s, diamOut);
+      const fillStep = (outletSpeed * FLOW_VISUAL_GAIN * dt) / FILL_LENGTH_CM;
+      s.segmentSpeed = outletSpeed;
+      s.realSpeed = outletSpeed;
+      s.currentSection = 'salida';
+      s.fillProg = Math.min(1, s.fillProg + fillStep);
+      s.recVol = initVol * s.fillProg;
+      s.depVol = Math.max(0, initVol * (0.45 * (1 - s.fillProg)));
+
+      if (s.fillProg >= 1) {
+        s.phase = 2;
+        s.depVol = 0;
+        s.recVol = initVol;
+        s.tFilled = elapsed;
+        s.frozenTime = s.tFilled;
+      }
+    }
+  });
+
+  updatePanels(elapsed);
+  draw();
+
+  if (allDone) {
+    running = false;
+    done = true;
+    showResults();
+    document.getElementById('btn-go').disabled = false;
+    return;
+  }
+
+  rafId = requestAnimationFrame(loop);
+}
+
+function fmt(t) {
+  if (t === null) return '-';
+  if (t < 60) return t.toFixed(1) + ' s';
+  return `${Math.floor(t / 60)}m ${(t % 60).toFixed(0)}s`;
+}
+
+function updatePanels(elapsed) {
+  states.forEach(s => {
+    const id = s.id;
+    const shownTime = s.frozenTime !== null ? s.frozenTime : elapsed;
+    document.getElementById(`t-${id}`).textContent = fmt(shownTime);
+    document.getElementById(`arr-${id}`).textContent =
+      s.tArrival !== null ? fmt(s.tArrival) : (s.phase === 0 ? 'en camino...' : '-');
+    document.getElementById(`fill-${id}`).textContent =
+      s.tFilled !== null ? fmt(s.tFilled) : (s.phase === 1 ? 'llenando...' : '-');
+    document.getElementById(`v-${id}`).textContent = s.realSpeed.toFixed(s.realSpeed < 0.01 ? 4 : 3) + ' cm/s';
+    document.getElementById(`dep-${id}`).textContent = Math.round(s.depVol) + ' mL';
+    document.getElementById(`bar-${id}`).style.width = Math.round(s.fillProg * 100) + '%';
+  });
+}
+
+function showResults() {
+  const sorted = [...states].sort((a, b) => (a.tFilled || 999) - (b.tFilled || 999));
+  const fastest = sorted[0];
+  const slowest = sorted[sorted.length - 1];
+  const factor = fastest.tFilled && slowest.tFilled ? (slowest.tFilled / fastest.tFilled).toFixed(1) : '-';
+  const alcohol = states.find(s => s.id === 'alc');
+  const water = states.find(s => s.id === 'agua');
+  const oil = states.find(s => s.id === 'ace');
+
+  document.getElementById('r-fast').textContent = fastest.name;
+  document.getElementById('r-fast').style.color = fastest.color;
+  document.getElementById('r-fast-t').textContent = `Llenado en ${fmt(fastest.tFilled)}`;
+
+  document.getElementById('r-slow').textContent = slowest.name;
+  document.getElementById('r-slow').style.color = slowest.color;
+  document.getElementById('r-slow-t').textContent = `Llenado en ${fmt(slowest.tFilled)}`;
+
+  document.getElementById('r-factor').textContent = factor + '×';
+  document.getElementById('r-conclusion').innerHTML =
+    `<strong>${slowest.name}</strong> tardo <strong>${factor}x</strong> mas en llenar el recipiente que <strong>${fastest.name}</strong>. ` +
+    `Con theta=${angle} grados y diametros ${diamIn.toFixed(1)} / ${diamMid.toFixed(1)} / ${diamOut.toFixed(1)} cm, el tramo mas estrecho condiciono el caudal total. ` +
+    `Velocidades reales: Alcohol <b>${alcohol.realSpeed.toFixed(3)} cm/s</b>, ` +
+    `Agua <b>${water.realSpeed.toFixed(3)} cm/s</b>, ` +
+    `Aceite <b>${oil.realSpeed.toFixed(3)} cm/s</b>. ` +
+    `El aceite sigue siendo mas viscoso, pero ahora su flujo es observable sin romper la comparacion fisica.`;
+
+  document.getElementById('result-bar').style.display = 'flex';
+}
+
+function readSliders() {
+  angle = parseInt(document.getElementById('sl-ang').value, 10);
+  initVol = parseInt(document.getElementById('sl-vol').value, 10);
+  diamIn = parseFloat(document.getElementById('sl-dia-in').value);
+  diamMid = parseFloat(document.getElementById('sl-dia-mid').value);
+  diamOut = parseFloat(document.getElementById('sl-dia-out').value);
+  document.getElementById('lbl-ang').textContent = angle + '°';
+  document.getElementById('lbl-vol').textContent = initVol;
+  document.getElementById('lbl-dia-in').textContent = diamIn.toFixed(1);
+  document.getElementById('lbl-dia-mid').textContent = diamMid.toFixed(1);
+  document.getElementById('lbl-dia-out').textContent = diamOut.toFixed(1);
+  renderDiameterZones();
+}
+
+['sl-ang', 'sl-vol', 'sl-dia-in', 'sl-dia-mid', 'sl-dia-out'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    readSliders();
+    if (!running && !done) draw();
+  });
+});
+
+function startExp() {
+  if (running || done) return;
+  readSliders();
+  initStates();
+  firstBadge = false;
+  running = true;
+  done = false;
+  startTs = null;
+  lastTs = null;
+  document.getElementById('btn-go').disabled = true;
+  document.getElementById('result-bar').style.display = 'none';
+  ['agua', 'alc', 'ace'].forEach(id => {
+    document.getElementById(`bdg-${id}`).style.display = 'none';
+    ['t', 'arr', 'fill', 'v', 'dep'].forEach(p => document.getElementById(`${p}-${id}`).textContent = '-');
+    document.getElementById(`bar-${id}`).style.width = '0%';
+  });
+  rafId = requestAnimationFrame(loop);
+}
+
+function resetExp() {
+  if (rafId) cancelAnimationFrame(rafId);
+  running = false;
+  done = false;
+  startTs = null;
+  lastTs = null;
+  firstBadge = false;
+  states = [];
+  document.getElementById('btn-go').disabled = false;
+  document.getElementById('result-bar').style.display = 'none';
+  ['agua', 'alc', 'ace'].forEach(id => {
+    document.getElementById(`bdg-${id}`).style.display = 'none';
+    ['t', 'arr', 'fill', 'v', 'dep'].forEach(p => document.getElementById(`${p}-${id}`).textContent = '-');
+    document.getElementById(`bar-${id}`).style.width = '0%';
+  });
+  readSliders();
+  draw();
+}
+
+readSliders();
+draw();
+</script>
+</body>
+</html>
